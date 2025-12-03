@@ -11,12 +11,27 @@ spec:
     metadata:
       labels:
         app: flask-demo
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "flask-app"
+        vault.hashicorp.com/agent-inject-secret-flask.txt: "secret/data/flask-app"
+        vault.hashicorp.com/agent-inject-template-flask.txt: |
+          {{- with secret "secret/data/flask-app" -}}
+          export DB_PASSWORD="{{ .Data.data.DB_PASSWORD }}"
+          export ENV="{{ .Data.data.ENV }}"
+          {{- end }}
     spec:
+      serviceAccountName: flask-app  # ← critical!
       containers:
       - name: flask
         image: panditaditya1798/argo-k8s:v1
         ports:
         - containerPort: 8080
-        env:
-        - name: ENV
-          value: "k8s-argocd"
+        volumeMounts:
+        - name: vault-secrets
+          mountPath: /vault/secrets
+          readOnly: true
+      volumes:
+      - name: vault-secrets
+        emptyDir:
+          medium: Memory  # secrets never hit disk
