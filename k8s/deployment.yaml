@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-demo
+  template:
+    metadata:
+      labels:
+        app: flask-demo
+    spec:
+      containers:
+      - name: flask
+        image: panditaditya1798/argo-k8s:v1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENV
+          value: "k8s-argocd"
